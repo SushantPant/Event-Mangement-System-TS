@@ -4,6 +4,8 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "nodemon",
+    "build": "npm run build:api && tsc",
+    "build:api": "tsoa spec-and-routes",
     "migrate": "knex --knexfile knexfile.ts migrate:latest",
     "migrate:rollback": "knex --knexfile knexfile.ts migrate:rollback",
     "migrate:make": "knex --knexfile knexfile.ts migrate:make"

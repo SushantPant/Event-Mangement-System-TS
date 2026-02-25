@@ -1,7 +1,9 @@
 import * as express from "express";
 import * as jwt from "jsonwebtoken";
 
-const expressAuthentication = (request: express.Request): Promise<any> => {
+export const expressAuthentication = (
+  request: express.Request,
+): Promise<any> => {
   return new Promise((resolve, reject) => {
     const authHeader = request.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];

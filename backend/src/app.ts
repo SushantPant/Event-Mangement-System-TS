@@ -10,6 +10,7 @@ dotenv.config();
 import path from "path";
 import fs from "fs";
 import swaggerUi from "swagger-ui-express";
+import { RegisterRoutes } from "./routes/routes";
 const app = express();
 app.use(
   cors({
@@ -34,6 +35,7 @@ if (swaggerDoc) {
 }
 
 const apiRouter = express.Router();
+RegisterRoutes(apiRouter);
 app.use("/api", apiRouter);
 
 app.use((_req, res) => {
