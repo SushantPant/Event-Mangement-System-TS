@@ -17,6 +17,7 @@
   "routes": {
     "routesDir": "src/routes",
     "middleware": "express",
-    "authenticationModule": "src/authentication"
+    "authenticationModule": "src/authentication",
+    "validation": true
   }
 }

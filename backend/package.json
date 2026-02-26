@@ -8,7 +8,9 @@
     "build:api": "tsoa spec-and-routes",
     "migrate": "knex --knexfile knexfile.ts migrate:latest",
     "migrate:rollback": "knex --knexfile knexfile.ts migrate:rollback",
-    "migrate:make": "knex --knexfile knexfile.ts migrate:make"
+    "migrate:make": "knex --knexfile knexfile.ts migrate:make",
+    "migrate:seed": "knex --knexfile knexfile.ts seed:run",
+    "migrate:seed:make": "knex --knexfile knexfile.ts seed:make"
   },
   "keywords": [],
   "author": "",

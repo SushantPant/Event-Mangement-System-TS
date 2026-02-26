@@ -22,10 +22,20 @@ import jwt from "jsonwebtoken";
 @Route("auth")
 @Tags("Auth")
 export class AuthController extends Controller {
-  private generateToken(user: { id: number; username: string; email: string }) {
+  private generateToken(user: {
+    id: number;
+    username: string;
+    email: string;
+    role: string;
+  }) {
     const secret = process.env.JWT_SECRET || "SuperSecretKey123!@";
     const token = jwt.sign(
-      { id: user.id, username: user.username, email: user.email },
+      {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
       secret,
       { expiresIn: "15m" } as jwt.SignOptions,
     );
@@ -84,11 +94,16 @@ export class AuthController extends Controller {
     }
 
     const password_hash = await bcrypt.hash(password, 10);
-    const [id] = await db("users").insert({ username, email, password_hash });
+    const [id, role] = await db("users").insert({
+      username,
+      email,
+      password_hash,
+    });
     const { token, refreshToken } = this.generateToken({
       id,
       username,
       email,
+      role: "user",
     });
     const refreshTokenHashed = await bcrypt.hash(refreshToken, 10);
     await db("refresh_tokens").insert({
@@ -102,7 +117,7 @@ export class AuthController extends Controller {
     return {
       success: true,
       message: "User registered successfully",
-      data: { token, user: { id, username, email } },
+      data: { token, user: { id, username, email, role: "user" } },
     };
   }
   @Post("login")
@@ -113,6 +128,7 @@ export class AuthController extends Controller {
   ): Promise<AuthResponse | void> {
     const { email, password } = requestBody;
     const user = await db("users").where({ email }).first();
+    console.log(user);
     if (!user) {
       this.setStatus(400);
       return {
@@ -142,7 +158,12 @@ export class AuthController extends Controller {
         message: "Login successful",
         data: {
           token,
-          user: { id: user.id, username: user.username, email: user.email },
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+          },
         },
       };
     }
@@ -210,7 +231,12 @@ export class AuthController extends Controller {
       message: "Token refreshed successfully",
       data: {
         token,
-        user: { id: user.id, username: user.username, email: user.email },
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+        },
       },
     };
   }
