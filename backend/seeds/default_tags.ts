@@ -1,4 +1,3 @@
-// seeds/default_tags.ts
 import type { Knex } from "knex";
 
 const DEFAULT_TAGS = [

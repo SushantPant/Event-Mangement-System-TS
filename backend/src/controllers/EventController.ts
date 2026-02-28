@@ -261,7 +261,6 @@ export class EventController extends Controller {
     @Request() req: express.Request,
     @Body() body: { name: string },
   ) {
-    
     if ((req as any).user.role !== "admin") {
       this.setStatus(403);
       return {

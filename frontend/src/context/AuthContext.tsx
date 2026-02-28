@@ -21,8 +21,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const refreshAuth = async () => {
       try {
         const res = await refreshApi();
-        const { token: accToken, user: accUser } = res;
-        setAuthData(accToken, accUser);
+        if (res.success && res.data) {
+          setAuthData(res.token, res.data);
+        } else {
+          setAuthData(null, null);
+        }
       } catch (error) {
         setAuthData(null, null);
       } finally {
@@ -33,16 +36,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
   const login: AuthContextType["login"] = async (email, password) => {
     const res = await loginApi(email, password);
-    setAuthData(res.token, res.user);
+    if (res.success && res.data) {
+      setAuthData(res.token, res.data);
+    }
+    return res;
   };
+
   const register: AuthContextType["register"] = async (
     username,
     email,
     password,
   ) => {
     const res = await registerApi(username, email, password);
-    setAuthData(res.token, res.user);
+    if (res.success && res.data) {
+      setAuthData(res.token, res.data);
+    }
+    return res;
   };
+
   const logout: AuthContextType["logout"] = async () => {
     try {
       await logoutApi();

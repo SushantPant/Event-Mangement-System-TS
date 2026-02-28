@@ -59,7 +59,7 @@ export class AuthController extends Controller {
       httpOnly: true,
       secure: true,
       sameSite: "none",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: parseInt(process.env.JWT_EXPIRES_IN ?? "7") * 24 * 60 * 60 * 1000,
     });
   }
   @Post("register")
@@ -128,7 +128,6 @@ export class AuthController extends Controller {
   ): Promise<AuthResponse | void> {
     const { email, password } = requestBody;
     const user = await db("users").where({ email }).first();
-    console.log(user);
     if (!user) {
       this.setStatus(400);
       return {
@@ -151,6 +150,12 @@ export class AuthController extends Controller {
       user_id: user.id,
       token: hashedRefreshToken,
     });
+    const expiryDays = parseInt(process.env.JWT_EXPIRES_IN ?? "7");
+
+    db("refresh_tokens")
+      .whereRaw(`created_at < NOW() - INTERVAL ${expiryDays} DAY`)
+      .delete();
+
     if (req.res) {
       this.refreshTokenCookie(req.res, refreshToken);
       return {
@@ -193,6 +198,7 @@ export class AuthController extends Controller {
         id: userId,
       })
       .first();
+
     if (!user) {
       this.setStatus(401);
       return {
@@ -214,15 +220,15 @@ export class AuthController extends Controller {
         break;
       }
     }
-
     if (!isMatch) {
       this.setStatus(401);
-      return { success: false, message: "Refresh token mismatch" } as any;
+      return { success: false, message: "Refresh token mismatch" };
     }
     const { token, refreshToken: newRefreshToken } = this.generateToken(user);
+    const hashedNewRefreshToken = await bcrypt.hash(newRefreshToken, 10);
     await db("refresh_tokens")
       .where({ id: matchedTokenId })
-      .update({ token: newRefreshToken });
+      .update({ token: hashedNewRefreshToken });
     if (req.res) {
       this.refreshTokenCookie(req.res, newRefreshToken);
     }

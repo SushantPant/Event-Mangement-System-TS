@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
 import LoginPage from "./pages/LoginPage";
 import EventsDashboard from "./pages/EventsDashboard";
+import NotFoundPage from "./pages/NotFoundPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -27,11 +28,12 @@ const AppRoutes = () => {
       <Route
         path="/"
         element={
-          <PublicRoute>
+          <ProtectedRoute>
             <EventsDashboard />
-          </PublicRoute>
+          </ProtectedRoute>
         }
       />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 };
