@@ -3,6 +3,7 @@ interface Event {
   user_id: number;
   title: string;
   description: string | null;
+  location?: string | null;
   public: boolean;
   DateTime: Date;
   created_at: Date;
@@ -29,6 +30,7 @@ interface PaginatedEvents {
 interface EventCreateRequest {
   title: string;
   description?: string;
+  location?: string;
   public: boolean;
   DateTime: Date;
   tagIds?: number[];
@@ -37,6 +39,7 @@ interface EventCreateRequest {
 interface EventUpdateRequest {
   title?: string;
   description?: string;
+  location?: string;
   public?: boolean;
   DateTime?: Date;
   tagIds?: number[];

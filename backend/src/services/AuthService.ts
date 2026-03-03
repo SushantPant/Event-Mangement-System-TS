@@ -66,6 +66,7 @@ export class AuthService {
     await db("refresh_tokens").insert({
       user_id: id,
       token: refreshTokenHashed,
+      expires_at: new Date(Date.now() + (parseInt(process.env.JWT_EXPIRES_IN ?? "7") * 24 * 60 * 60 * 1000)),
     });
 
     return {
@@ -100,11 +101,11 @@ export class AuthService {
     await db("refresh_tokens").insert({
       user_id: user.id,
       token: hashedRefreshToken,
+      expires_at: new Date(Date.now() + (parseInt(process.env.JWT_EXPIRES_IN ?? "7") * 24 * 60 * 60 * 1000)),
     });
-    const expiryDays = parseInt(process.env.JWT_EXPIRES_IN ?? "7");
 
     db("refresh_tokens")
-      .whereRaw(`created_at < NOW() - INTERVAL ${expiryDays} DAY`)
+      .where("expires_at", "<", db.fn.now())
       .delete();
 
     return {

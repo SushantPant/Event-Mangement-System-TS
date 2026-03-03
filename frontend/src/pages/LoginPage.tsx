@@ -62,7 +62,10 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-100 flex items-center justify-center  px-4 py-6 md:px-0">
+    <div
+      className="min-h-screen  flex items-center justify-center px-4 py-6 md:px-0 bg-texture"
+
+    >
       <div className="w-full max-w-md p-8">
         <div className="text-center mb-8">
           <h1 className="text-xl lg:text-2xl xl:text-3xl font-bold text-black mb-1">
@@ -199,7 +202,7 @@ const LoginPage = () => {
           </button>
         </p>
       </div>
-    </div>
+    </div >
   );
 };
 

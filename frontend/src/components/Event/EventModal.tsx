@@ -9,7 +9,7 @@ interface EventModalProps {
   onSubmit: (data: EventCreateRequest) => Promise<void>;
   tags: Tag[];
   initialData?: Partial<EventCreateRequest> & { id?: number };
-  mode: "create" | "update";
+  mode: "create" | "update" | "view";
 }
 
 const EventModal = ({
@@ -23,6 +23,7 @@ const EventModal = ({
   const [form, setForm] = useState<EventCreateRequest>({
     title: "",
     description: "",
+    location: "",
     public: false,
     DateTime: "",
     tagIds: [],
@@ -31,18 +32,26 @@ const EventModal = ({
 
   useEffect(() => {
     if (initialData) {
-      console.log("initialData:", initialData)
+      let localDateTime = "";
+      if (initialData.DateTime) {
+        const d = new Date(initialData.DateTime);
+        localDateTime = new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+          .toISOString()
+          .slice(0, 16);
+      }
       setForm({
         title: initialData.title ?? "",
         description: initialData.description ?? "",
+        location: (initialData.location as string | null | undefined) ?? "",
         public: initialData.public ?? false,
-        DateTime: initialData.DateTime ? initialData.DateTime.slice(0, 16) : "",
+        DateTime: localDateTime,
         tagIds: initialData.tagIds ?? [],
       });
     } else {
       setForm({
         title: "",
         description: "",
+        location: "",
         public: false,
         DateTime: "",
         tagIds: [],
@@ -130,6 +139,20 @@ const EventModal = ({
               placeholder="Describe your event..."
               rows={3}
               className="w-full px-4 py-2.5 rounded-lg text-sm text-stone-800 placeholder-stone-400 bg-stone-100 border border-stone-200 focus:outline-none focus:ring-2 focus:ring-yellow-500/40 focus:border-yellow-600 transition resize-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1.5">
+              Location
+            </label>
+            <input
+              value={form.location ?? ""}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, location: e.target.value }))
+              }
+              placeholder="Event location (optional)"
+              className="w-full px-4 py-2.5 rounded-lg text-sm text-stone-800 placeholder-stone-400 bg-stone-100 border border-stone-200 focus:outline-none focus:ring-2 focus:ring-yellow-500/40 focus:border-yellow-600 transition"
             />
           </div>
 

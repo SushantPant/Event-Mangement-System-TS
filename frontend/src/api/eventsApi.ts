@@ -10,15 +10,18 @@ import type { IResponse } from "../interfaces/response.interface";
 import api from "./api";
 
 const getAllEvents = async (
+  userId: number,
   page: number,
   limit: number,
   search: string,
   tags: string,
   isPublic: "all" | "public" | "private",
+  isOngoing: "all" | "Ongoing" | "Past",
   sort: "asc" | "desc",
 ): Promise<IResponse<{ events: Event[]; pagination: Pagination }>> => {
   try {
     const params = new URLSearchParams();
+    params.set("userId", String(userId));
     params.set("page", String(page));
     params.set("limit", String(limit));
     params.set("sort", sort);
@@ -26,6 +29,8 @@ const getAllEvents = async (
     if (tags) params.set("tags", tags);
     if (isPublic === "public") params.set("isPublic", "true");
     if (isPublic === "private") params.set("isPublic", "false");
+    if (isOngoing === "Ongoing") params.set("isOngoing", "true");
+    if (isOngoing === "Past") params.set("isOngoing", "false");
     const res = await api.get(`events?${params.toString()}`);
     return res.data;
   } catch (error: any) {
@@ -59,12 +64,9 @@ const updateEvent = async (
   body: EventUpdateRequest,
 ): Promise<IResponse<Event>> => {
   try {
-    console.log("Full body being sent:", JSON.stringify(body, null, 2)); // ✅
-
     const res = await api.patch(`events/${id}`, body);
     return res.data;
   } catch (error: any) {
-    console.error(error.response);
     return (
       error.response?.data ?? {
         success: false,
@@ -116,6 +118,20 @@ const createTag = async (name: string): Promise<IResponse<Tag>> => {
   }
 };
 
+const updateTag = async (id: number, name: string): Promise<IResponse<Tag>> => {
+  try {
+    const res = await api.put(`events/tags/${id}`, { name });
+    return res.data;
+  } catch (error: any) {
+    return (
+      error.response?.data ?? {
+        success: false,
+        message: "Failed to update tag",
+      }
+    );
+  }
+};
+
 const deleteTag = async (id: number): Promise<IResponse<null>> => {
   try {
     const res = await api.delete(`events/tags/${id}`);
@@ -137,5 +153,6 @@ export {
   deleteEvent,
   getAllTags,
   createTag,
+  updateTag,
   deleteTag,
 };

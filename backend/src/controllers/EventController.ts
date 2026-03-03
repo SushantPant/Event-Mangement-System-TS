@@ -14,18 +14,18 @@ import {
   Delete,
   Patch,
 } from "tsoa";
-import db from "../db/db";
 import {
   EventCreateRequest,
   EventUpdateRequest,
 } from "../interfaces/events.interface";
 import { IResponse } from "../interfaces/response.interface";
 import { EventService } from "../services/EventService";
-
+import * as jwt from "jsonwebtoken";
 @Route("events")
 @Tags("Events")
 export class EventController extends Controller {
   private eventService = new EventService();
+  @Security("bearerAuth")
   @Get("")
   public async getEvents(
     @Request() req: express.Request,
@@ -34,22 +34,13 @@ export class EventController extends Controller {
     @Query("search") search?: string,
     @Query("tags") tags?: string,
     @Query("isPublic") isPublic?: boolean,
+    @Query("isOngoing") isOngoing?: boolean,
     @Query("sort") sort?: "asc" | "desc",
   ) {
-    const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      throw new Error("No token provided");
-    }
 
-    const token = authHeader.split(" ")[1];
-
-    const tokenRow = await db("refresh_tokens")
-      .where({ token })
-      .first("user_id");
-    const userId = tokenRow?.user_id ?? null;
-
-    return this.eventService.getEvents(userId, page, limit, search, tags, isPublic, sort);
+    const userId = (req as any).user.id;
+    return this.eventService.getEvents(userId, page, limit, search, tags, isPublic, isOngoing, sort);
   }
 
   @Security("bearerAuth")
@@ -127,6 +118,31 @@ export class EventController extends Controller {
     const response = await this.eventService.createTag(body.name);
     if (!response.success && response.message === "Tag already exists") {
       this.setStatus(409);
+    }
+    return response;
+  }
+
+  @Security("bearerAuth", ["admin"])
+  @Put("tags/{id}")
+  public async updateTag(
+    @Request() req: express.Request,
+    @Path() id: number,
+    @Body() body: { name: string },
+  ) {
+    if ((req as any).user.role !== "admin") {
+      this.setStatus(403);
+      return {
+        success: false,
+        message: "Forbidden: Only admins can update tags",
+      };
+    }
+    const response = await this.eventService.updateTag(id, body.name);
+    if (!response.success) {
+      if (response.message === "Tag not found") {
+        this.setStatus(404);
+      } else if (response.message === "Tag already exists") {
+        this.setStatus(409);
+      }
     }
     return response;
   }

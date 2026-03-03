@@ -13,6 +13,7 @@ export class EventService {
         search?: string,
         tags?: string,
         isPublic?: boolean,
+        isOngoing?: boolean,
         sort?: "asc" | "desc",
     ) {
         const safePage = Math.max(1, page);
@@ -31,17 +32,19 @@ export class EventService {
                 "events.id",
                 "events.title",
                 "events.description",
+                "events.location",
                 "events.public",
                 "events.DateTime",
                 "events.created_at",
                 "events.updated_at",
+                "events.user_id",
                 "users.username as author",
                 db.raw("GROUP_CONCAT(tags.id) as tagIds"),
             )
             .groupBy("events.id");
 
         let countQuery = db("events")
-            .join("users", "events.user_id", "users.id")
+            .leftJoin("users", "events.user_id", "users.id")
             .leftJoin(
                 "event_tags_mapping",
                 "events.id",
@@ -70,22 +73,29 @@ export class EventService {
                     .whereIn("t.name", tagsArray);
             });
         }
-        if (isPublic !== undefined) {
-            if (isPublic === true) {
-                query = query.where(function () {
-                    this.where("events.public", true).orWhere("events.user_id", userId);
-                });
-
-                countQuery = countQuery.where(function () {
-                    this.where("events.public", true).orWhere("events.user_id", userId);
-                });
-            } else {
-                query = query.where("events.user_id", userId);
-                countQuery = countQuery.where("events.user_id", userId);
-            }
+        if (isPublic === true) {
+            query = query.where("events.public", true);
+            countQuery = countQuery.where("events.public", true);
+        } else if (isPublic === false) {
+            query = query.where("events.public", false).where("events.user_id", userId);
+            countQuery = countQuery.where("events.public", false).where("events.user_id", userId);
+        } else {
+            query = query.where(function () {
+                this.where("events.public", true).orWhere("events.user_id", userId);
+            });
+            countQuery = countQuery.where(function () {
+                this.where("events.public", true).orWhere("events.user_id", userId);
+            });
+        }
+        if (isOngoing === true) {
+            query = query.where("events.DateTime", ">", new Date().toISOString());
+            countQuery = countQuery.where("events.DateTime", ">", new Date().toISOString());
+        } else if (isOngoing === false) {
+            query = query.where("events.DateTime", "<", new Date().toISOString());
+            countQuery = countQuery.where("events.DateTime", "<", new Date().toISOString());
         }
         query = query
-            .orderBy("events.DateTime", sort)
+            .orderBy("events.created_at", sort)
             .limit(safeLimit)
             .offset(offset);
         const [events, total] = await Promise.all([
@@ -94,7 +104,6 @@ export class EventService {
         ]);
         const totalCount = Number((total as any)?.count || 0);
         const totalPages = Math.ceil(totalCount / safeLimit);
-        console.log(events)
         return {
             success: true,
             data: {
@@ -122,6 +131,7 @@ export class EventService {
         const {
             title,
             description,
+            location,
             public: isPublic,
             DateTime,
             tagIds,
@@ -130,6 +140,7 @@ export class EventService {
             user_id: userId,
             title,
             description,
+            location,
             public: isPublic,
             DateTime,
         });
@@ -146,6 +157,7 @@ export class EventService {
                 "events.id",
                 "events.title",
                 "events.description",
+                "events.location",
                 "events.public",
                 "events.DateTime",
                 "events.created_at",
@@ -197,6 +209,7 @@ export class EventService {
                 "events.id",
                 "events.title",
                 "events.description",
+                "events.location",
                 "events.public",
                 "events.DateTime",
                 "events.created_at",
@@ -243,6 +256,19 @@ export class EventService {
             return { success: false, message: "Tag already exists" };
         }
         const [id] = await db("tags").insert({ name });
+        return { success: true, data: { id, name } };
+    }
+
+    public async updateTag(id: number, name: string): Promise<IResponse> {
+        const tag = await db("tags").where({ id }).first();
+        if (!tag) {
+            return { success: false, message: "Tag not found" };
+        }
+        const existing = await db("tags").where({ name }).whereNot({ id }).first();
+        if (existing) {
+            return { success: false, message: "Tag already exists" };
+        }
+        await db("tags").where({ id }).update({ name });
         return { success: true, data: { id, name } };
     }
 
