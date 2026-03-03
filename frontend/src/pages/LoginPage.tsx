@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
-import type { AuthReponse, AuthTextMapping } from "../interface/auth.interface";
+import type {
+  AuthReponse,
+  AuthTextMapping,
+} from "../interfaces/auth.interface";
 import toast from "react-hot-toast";
 
 const LoginPage = () => {
@@ -81,6 +84,8 @@ const LoginPage = () => {
                   name="username"
                   placeholder="Enter your username"
                   className="w-full px-4 py-2.5 pr-10 border border-slate-200 rounded-lg text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition bg-slate-100"
+                  // required={!isLogin}
+                  required
                 />
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -110,6 +115,7 @@ const LoginPage = () => {
                 name="email"
                 placeholder="Enter your email"
                 className="w-full px-4 py-2.5 pr-10 border border-slate-200 rounded-lg text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition bg-slate-100"
+                required
               />
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -138,6 +144,7 @@ const LoginPage = () => {
                 name="password"
                 placeholder="Enter your password"
                 className="w-full px-4 py-2.5 pr-10 border border-slate-200 rounded-lg text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition bg-slate-100"
+                required
               />
               {currentType === "password" ? (
                 <svg

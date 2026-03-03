@@ -6,9 +6,11 @@ interface User {
 }
 interface AuthReponse {
   success: boolean;
-  token: string;
   message: string;
-  data?: User;
+  data?: {
+    token: string;
+    user: User;
+  };
 }
 interface AuthContextType {
   user: User | null;

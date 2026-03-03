@@ -1,4 +1,4 @@
-import type { AuthReponse } from "../interface/auth.interface";
+import type { AuthReponse } from "../interfaces/auth.interface";
 import api from "./api";
 
 const loginApi = async (
@@ -7,17 +7,11 @@ const loginApi = async (
 ): Promise<AuthReponse> => {
   try {
     const res = await api.post("/auth/login", { email, password });
-    return {
-      success: res.data.success,
-      message: res.data.message,
-      token: res.data.data.token,
-      data: res.data.data.user,
-    };
+    return res.data;
   } catch (error: any) {
     return (
       error.response?.data ?? {
         success: false,
-        token: "",
         message: "Failed to login",
       }
     );
@@ -30,18 +24,13 @@ const registerApi = async (
   password: string,
 ): Promise<AuthReponse> => {
   try {
+    
     const res = await api.post("/auth/register", { username, email, password });
-    return {
-      success: res.data.success,
-      message: res.data.message,
-      token: res.data.data.token,
-      data: res.data.data.user,
-    };
+    return res.data;
   } catch (error: any) {
     return (
       error.response?.data ?? {
         success: false,
-        token: "",
         message: "Failed to register",
       }
     );
@@ -51,17 +40,11 @@ const registerApi = async (
 const refreshApi = async (): Promise<AuthReponse> => {
   try {
     const res = await api.post("/auth/refresh");
-    return {
-      success: res.data.success,
-      message: res.data.message,
-      token: res.data.data.token,
-      data: res.data.data.user,
-    };
+    return res.data;
   } catch (error: any) {
     return (
       error.response?.data ?? {
         success: false,
-        token: "",
         message: "Failed to refresh token",
       }
     );

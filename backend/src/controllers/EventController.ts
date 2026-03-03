@@ -12,6 +12,7 @@ import {
   Path,
   Put,
   Delete,
+  Patch,
 } from "tsoa";
 import db from "../db/db";
 import {
@@ -33,9 +34,18 @@ export class EventController extends Controller {
     @Query("isPublic") isPublic?: boolean,
     @Query("sort") sort?: "asc" | "desc",
   ) {
-    const userId = await db("refresh_tokens")
-      .where({ token: req?.cookies?.refreshToken.split(":")[1] })
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      throw new Error("No token provided");
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    const tokenRow = await db("refresh_tokens")
+      .where({ token })
       .first("user_id");
+    const userId = tokenRow?.user_id ?? null;
     const safePage = Math.max(1, page);
     const safeLimit = Math.min(50, Math.max(1, limit));
     const offset = (safePage - 1) * safeLimit;
@@ -60,15 +70,18 @@ export class EventController extends Controller {
       )
       .groupBy("events.id");
 
-    let countQuery = db("events").join("users", "events.user_id", "users.id");
+    let countQuery = db("events")
+      .join("users", "events.user_id", "users.id")
+      .leftJoin(
+        "event_tags_mapping",
+        "events.id",
+        "event_tags_mapping.event_id",
+      )
+      .leftJoin("tags", "event_tags_mapping.tag_id", "tags.id");
 
     if (search) {
       query = query.where("events.title", "like", `%${search}%`);
       countQuery = countQuery.where("events.title", "like", `%${search}%`);
-    }
-    if (isPublic) {
-      query = query.where("events.public", true);
-      countQuery = countQuery.where("events.public", true);
     }
     if (tags) {
       const tagsArray = tags.split(",").map((tag) => tag.trim());
@@ -97,12 +110,12 @@ export class EventController extends Controller {
       query,
       countQuery.countDistinct("events.id as count").first(),
     ]);
-    const totalCount = Number((total as any)?.total || 0);
+    const totalCount = Number((total as any)?.count || 0);
     const totalPages = Math.ceil(totalCount / safeLimit);
     return {
       success: true,
       data: {
-        events,
+        events: events.map((e: any) => ({ ...e, public: Boolean(e.public) })),
         pagination: {
           page: safePage,
           limit: safeLimit,
@@ -164,7 +177,7 @@ export class EventController extends Controller {
   }
 
   @Security("bearerAuth")
-  @Put("{id}")
+  @Patch("{id}")
   public async updateEvent(
     @Request() req: express.Request,
     @Path() id: number,
@@ -198,7 +211,6 @@ export class EventController extends Controller {
         );
       }
     }
-
     const updatedEvent = await db("events")
       .where({ "events.id": id })
       .leftJoin("users", "events.user_id", "users.id")

@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState } from "react";
-import type { AuthContextType } from "../interface/auth.interface";
+import type { AuthContextType } from "../interfaces/auth.interface";
 import { setAccessToken } from "../api/api";
 import { loginApi, logoutApi, refreshApi, registerApi } from "../api/authApi";
 
@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const res = await refreshApi();
         if (res.success && res.data) {
-          setAuthData(res.token, res.data);
+          setAuthData(res.data.token, res.data.user);
         } else {
           setAuthData(null, null);
         }
@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login: AuthContextType["login"] = async (email, password) => {
     const res = await loginApi(email, password);
     if (res.success && res.data) {
-      setAuthData(res.token, res.data);
+      setAuthData(res.data.token, res.data.user);
     }
     return res;
   };
@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   ) => {
     const res = await registerApi(username, email, password);
     if (res.success && res.data) {
-      setAuthData(res.token, res.data);
+      setAuthData(res.data.token, res.data.user);
     }
     return res;
   };
