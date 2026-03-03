@@ -4,17 +4,17 @@ interface Event {
   title: string;
   description: string | null;
   public: boolean;
-  DateTime: Date;
+  DateTime: string;
   created_at: Date;
   updated_at: Date;
   author: string;
-  tags: string[];
+  tagIds: number[];
 }
 interface EventCreateRequest {
   title: string;
   description: string;
   public: boolean;
-  DateTime: Date;
+  DateTime: string;
   tagIds: number[];
 }
 
@@ -24,11 +24,6 @@ interface EventUpdateRequest {
   public?: boolean;
   DateTime?: string;
   tagIds?: number[];
-}
-interface EventResponse<T> {
-  success: boolean;
-  message: string;
-  data?: T;
 }
 
 interface Pagination {
@@ -46,7 +41,6 @@ interface Tag {
 
 export type {
   Event,
-  EventResponse,
   Tag,
   EventCreateRequest,
   EventUpdateRequest,

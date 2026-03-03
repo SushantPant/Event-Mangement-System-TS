@@ -8,7 +8,7 @@ interface Event {
   created_at: Date;
   updated_at: Date;
   author: string;
-  tags: string[];
+  tagIds: number[];
 }
 
 interface Pagination {
@@ -25,11 +25,6 @@ interface PaginatedEvents {
   pagination: Pagination;
 }
 
-interface EventResponse {
-  success: boolean;
-  message?: string;
-  data?: Event | PaginatedEvents;
-}
 
 interface EventCreateRequest {
   title: string;
@@ -50,7 +45,6 @@ export {
   Event,
   Pagination,
   PaginatedEvents,
-  EventResponse,
   EventCreateRequest,
   EventUpdateRequest,
 };

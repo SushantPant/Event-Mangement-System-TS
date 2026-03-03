@@ -4,23 +4,16 @@ interface User {
   email: string;
   role?: "user" | "admin";
 }
-interface AuthReponse {
-  success: boolean;
-  message: string;
-  data?: {
-    token: string;
-    user: User;
-  };
-}
+import type { IResponse } from "./response.interface";
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<AuthReponse>;
+  login: (email: string, password: string) => Promise<IResponse<{ token: string; user: User }>>;
   register: (
     username: string,
     email: string,
     password: string,
-  ) => Promise<AuthReponse>;
+  ) => Promise<IResponse<{ token: string; user: User }>>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   loading: boolean;
@@ -42,4 +35,4 @@ interface AuthTextMapping {
   login: AuthPageText;
   register: AuthPageText;
 }
-export type { User, AuthContextType, AuthProps, AuthTextMapping, AuthReponse };
+export type { User, AuthContextType, AuthProps, AuthTextMapping };

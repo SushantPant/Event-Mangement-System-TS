@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import type { EventCreateRequest, Tag } from "../interfaces/events.interface";
+import type { EventCreateRequest, Tag } from "../../interfaces/events.interface";
+import SubmitButton from "../ui/SubmitButton";
+import CancelButton from "../ui/CancelButton";
 
 interface EventModalProps {
   isOpen: boolean;
@@ -22,13 +24,14 @@ const EventModal = ({
     title: "",
     description: "",
     public: false,
-    DateTime: new Date(),
+    DateTime: "",
     tagIds: [],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (initialData) {
+      console.log("initialData:", initialData)
       setForm({
         title: initialData.title ?? "",
         description: initialData.description ?? "",
@@ -41,7 +44,7 @@ const EventModal = ({
         title: "",
         description: "",
         public: false,
-        DateTime: new Date(),
+        DateTime: "",
         tagIds: [],
       });
     }
@@ -74,9 +77,6 @@ const EventModal = ({
       <div className="relative w-full max-w-lg rounded-2xl overflow-hidden bg-white border border-stone-200 shadow-xl">
         <div className="flex items-center justify-between px-6 py-5 border-b border-stone-100">
           <div>
-            <p className="text-xs font-bold tracking-widest uppercase text-yellow-700 mb-0.5">
-              {mode === "create" ? "New Event" : "Edit Event"}
-            </p>
             <h2 className="text-xl font-black text-stone-900">
               {mode === "create" ? "Create an Event" : "Update Event"}
             </h2>
@@ -161,11 +161,10 @@ const EventModal = ({
                       key={tag.id}
                       type="button"
                       onClick={() => toggleTag(tag.id)}
-                      className={`px-3 py-1 rounded-full text-xs font-semibold transition border ${
-                        selected
-                          ? "bg-yellow-600 text-white border-yellow-600"
-                          : "bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200"
-                      }`}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold transition border ${selected
+                        ? "bg-yellow-600 text-white border-yellow-600"
+                        : "bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200"
+                        }`}
                     >
                       {tag.name}
                     </button>
@@ -179,14 +178,12 @@ const EventModal = ({
             <button
               type="button"
               onClick={() => setForm((p) => ({ ...p, public: !p.public }))}
-              className={`relative w-10 h-5 rounded-full transition-colors duration-200 ${
-                form.public ? "bg-yellow-600" : "bg-stone-300"
-              }`}
+              className={`relative w-10 h-5 rounded-full transition-colors duration-200 ${form.public ? "bg-yellow-600" : "bg-stone-300"
+                }`}
             >
               <span
-                className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${
-                  form.public ? "translate-x-5" : "translate-x-0"
-                }`}
+                className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${form.public ? "translate-x-5" : "translate-x-0"
+                  }`}
               />
             </button>
             <span className="text-sm text-stone-700 font-medium">
@@ -195,30 +192,10 @@ const EventModal = ({
           </div>
 
           <div className="flex gap-3 pt-2 border-t border-stone-100">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 border border-stone-200 transition"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-bold text-white transition flex items-center justify-center gap-2 ${
-                isSubmitting
-                  ? "bg-yellow-400 cursor-not-allowed"
-                  : "bg-yellow-600 hover:bg-yellow-700"
-              }`}
-            >
-              {isSubmitting ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : mode === "create" ? (
-                "Create Event"
-              ) : (
-                "Save Changes"
-              )}
-            </button>
+            <CancelButton onClick={onClose} className="flex-1" />
+            <SubmitButton isLoading={isSubmitting} className="flex-1">
+              {mode === "create" ? "Create Event" : "Save Changes"}
+            </SubmitButton>
           </div>
         </form>
       </div>

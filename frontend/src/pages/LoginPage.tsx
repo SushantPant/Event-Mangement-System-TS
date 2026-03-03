@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
-import type {
-  AuthReponse,
-  AuthTextMapping,
-} from "../interfaces/auth.interface";
+import type { AuthTextMapping } from "../interfaces/auth.interface";
 import toast from "react-hot-toast";
+import SubmitButton from "../components/ui/SubmitButton";
 
 const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -36,20 +34,20 @@ const LoginPage = () => {
     const password = formData.get("password") as string;
     setIsSubmitting(true);
     if (isLogin) {
-      const res: AuthReponse = await login(email, password);
+      const res = await login(email, password);
 
       if (res.success) {
         toast.success("Login Successful");
       } else {
-        toast.error(res.message);
+        toast.error(res.message || "An error occurred");
       }
     } else {
       const username = formData.get("username") as string;
-      const res: AuthReponse = await register(username, email, password);
+      const res = await register(username, email, password);
       if (res.success) {
         toast.success("Registration Successful");
       } else {
-        toast.error(res.message);
+        toast.error(res.message || "An error occurred");
       }
     }
     setIsSubmitting(false);
@@ -84,7 +82,6 @@ const LoginPage = () => {
                   name="username"
                   placeholder="Enter your username"
                   className="w-full px-4 py-2.5 pr-10 border border-slate-200 rounded-lg text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition bg-slate-100"
-                  // required={!isLogin}
                   required
                 />
                 <svg
@@ -187,15 +184,9 @@ const LoginPage = () => {
             </div>
           </div>
 
-          <button
-            type="submit"
-            className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2 mt-2"
-          >
-            {isSubmitting && (
-              <div className="w-4 h-4 border-2 border-t-2 border-t-amber-600 border-gray-300 rounded-full animate-spin"></div>
-            )}
+          <SubmitButton isLoading={isSubmitting} className="w-full mt-2">
             {text.submitButton}
-          </button>
+          </SubmitButton>
         </form>
 
         <p className="text-center text-sm mt-6">

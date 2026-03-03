@@ -17,6 +17,17 @@ const expressAuthenticationRecasted = expressAuthentication as (req: ExRequest, 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
 const models: TsoaRoute.Models = {
+    "IResponse_any_": {
+        "dataType": "refObject",
+        "properties": {
+            "success": {"dataType":"boolean","required":true},
+            "message": {"dataType":"string"},
+            "data": {"dataType":"any"},
+            "errors": {"dataType":"any"},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "EventCreateRequest": {
         "dataType": "refObject",
         "properties": {
@@ -41,90 +52,12 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "Event": {
-        "dataType": "refObject",
-        "properties": {
-            "id": {"dataType":"double","required":true},
-            "user_id": {"dataType":"double","required":true},
-            "title": {"dataType":"string","required":true},
-            "description": {"dataType":"union","subSchemas":[{"dataType":"string"},{"dataType":"enum","enums":[null]}],"required":true},
-            "public": {"dataType":"boolean","required":true},
-            "DateTime": {"dataType":"datetime","required":true},
-            "created_at": {"dataType":"datetime","required":true},
-            "updated_at": {"dataType":"datetime","required":true},
-            "author": {"dataType":"string","required":true},
-            "tags": {"dataType":"array","array":{"dataType":"string"},"required":true},
-        },
-        "additionalProperties": false,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "Pagination": {
-        "dataType": "refObject",
-        "properties": {
-            "page": {"dataType":"double","required":true},
-            "limit": {"dataType":"double","required":true},
-            "total": {"dataType":"double","required":true},
-            "totalPages": {"dataType":"double","required":true},
-            "hasNext": {"dataType":"boolean","required":true},
-            "hasPrev": {"dataType":"boolean","required":true},
-        },
-        "additionalProperties": false,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "PaginatedEvents": {
-        "dataType": "refObject",
-        "properties": {
-            "Events": {"dataType":"array","array":{"dataType":"refObject","ref":"Event"},"required":true},
-            "pagination": {"ref":"Pagination","required":true},
-        },
-        "additionalProperties": false,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "EventResponse": {
+    "IResponse": {
         "dataType": "refObject",
         "properties": {
             "success": {"dataType":"boolean","required":true},
             "message": {"dataType":"string"},
-            "data": {"dataType":"union","subSchemas":[{"ref":"Event"},{"ref":"PaginatedEvents"}]},
-        },
-        "additionalProperties": false,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "User": {
-        "dataType": "refObject",
-        "properties": {
-            "id": {"dataType":"double","required":true},
-            "username": {"dataType":"string","required":true},
-            "email": {"dataType":"string","required":true},
-            "role": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["user"]},{"dataType":"enum","enums":["admin"]}],"required":true},
-        },
-        "additionalProperties": false,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "AuthData": {
-        "dataType": "refObject",
-        "properties": {
-            "token": {"dataType":"string","required":true},
-            "user": {"ref":"User","required":true},
-        },
-        "additionalProperties": false,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "AuthResponse": {
-        "dataType": "refObject",
-        "properties": {
-            "success": {"dataType":"boolean","required":true},
-            "message": {"dataType":"string","required":true},
-            "data": {"ref":"AuthData"},
-        },
-        "additionalProperties": false,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "ErrorResponse": {
-        "dataType": "refObject",
-        "properties": {
-            "success": {"dataType":"boolean","required":true},
-            "message": {"dataType":"string","required":true},
+            "data": {"dataType":"any"},
             "errors": {"dataType":"any"},
         },
         "additionalProperties": false,
@@ -239,7 +172,7 @@ export function RegisterRoutes(app: Router) {
                 id: {"in":"path","name":"id","required":true,"dataType":"double"},
                 requestBody: {"in":"body","name":"requestBody","required":true,"ref":"EventUpdateRequest"},
         };
-        app.put('/events/:id',
+        app.patch('/events/:id',
             authenticateMiddleware([{"bearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(EventController)),
             ...(fetchMiddlewares<RequestHandler>(EventController.prototype.updateEvent)),

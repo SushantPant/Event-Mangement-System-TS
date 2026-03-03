@@ -17,13 +17,15 @@ import {
 import db from "../db/db";
 import {
   EventCreateRequest,
-  EventResponse,
   EventUpdateRequest,
 } from "../interfaces/events.interface";
+import { IResponse } from "../interfaces/response.interface";
+import { EventService } from "../services/EventService";
 
 @Route("events")
 @Tags("Events")
 export class EventController extends Controller {
+  private eventService = new EventService();
   @Get("")
   public async getEvents(
     @Request() req: express.Request,
@@ -46,86 +48,8 @@ export class EventController extends Controller {
       .where({ token })
       .first("user_id");
     const userId = tokenRow?.user_id ?? null;
-    const safePage = Math.max(1, page);
-    const safeLimit = Math.min(50, Math.max(1, limit));
-    const offset = (safePage - 1) * safeLimit;
-    let query = db("events")
-      .leftJoin("users", "events.user_id", "users.id")
-      .leftJoin(
-        "event_tags_mapping",
-        "events.id",
-        "event_tags_mapping.event_id",
-      )
-      .leftJoin("tags", "event_tags_mapping.tag_id", "tags.id")
-      .select(
-        "events.id",
-        "events.title",
-        "events.description",
-        "events.public",
-        "events.DateTime",
-        "events.created_at",
-        "events.updated_at",
-        "users.username as author",
-        db.raw("GROUP_CONCAT(tags.name) as tags"),
-      )
-      .groupBy("events.id");
 
-    let countQuery = db("events")
-      .join("users", "events.user_id", "users.id")
-      .leftJoin(
-        "event_tags_mapping",
-        "events.id",
-        "event_tags_mapping.event_id",
-      )
-      .leftJoin("tags", "event_tags_mapping.tag_id", "tags.id");
-
-    if (search) {
-      query = query.where("events.title", "like", `%${search}%`);
-      countQuery = countQuery.where("events.title", "like", `%${search}%`);
-    }
-    if (tags) {
-      const tagsArray = tags.split(",").map((tag) => tag.trim());
-      query = query.whereIn("tags.name", tagsArray);
-      countQuery = countQuery.whereIn("tags.name", tagsArray);
-    }
-    if (isPublic !== undefined) {
-      if (isPublic === true) {
-        query = query.where(function () {
-          this.where("events.public", true).orWhere("events.user_id", userId);
-        });
-
-        countQuery = countQuery.where(function () {
-          this.where("events.public", true).orWhere("events.user_id", userId);
-        });
-      } else {
-        query = query.where("events.user_id", userId);
-        countQuery = countQuery.where("events.user_id", userId);
-      }
-    }
-    query = query
-      .orderBy("events.DateTime", sort)
-      .limit(safeLimit)
-      .offset(offset);
-    const [events, total] = await Promise.all([
-      query,
-      countQuery.countDistinct("events.id as count").first(),
-    ]);
-    const totalCount = Number((total as any)?.count || 0);
-    const totalPages = Math.ceil(totalCount / safeLimit);
-    return {
-      success: true,
-      data: {
-        events: events.map((e: any) => ({ ...e, public: Boolean(e.public) })),
-        pagination: {
-          page: safePage,
-          limit: safeLimit,
-          totalCount,
-          totalPages,
-          hasNext: safePage < totalPages,
-          hasPrev: safePage > 1,
-        },
-      },
-    };
+    return this.eventService.getEvents(userId, page, limit, search, tags, isPublic, sort);
   }
 
   @Security("bearerAuth")
@@ -134,46 +58,13 @@ export class EventController extends Controller {
     @Request() req: express.Request,
     @Body() requestBody: EventCreateRequest,
   ) {
-    const {
-      title,
-      description,
-      public: isPublic,
-      DateTime,
-      tagIds,
-    } = requestBody;
     const userId = (req as any).user.id;
-    const [id] = await db("events").insert({
-      user_id: userId,
-      title,
-      description,
-      public: isPublic,
-      DateTime,
-    });
+    const response = await this.eventService.createEvent(userId, requestBody);
 
-    if (tagIds && tagIds.length > 0) {
-      await db("event_tags_mapping").insert(
-        tagIds.map((tagId) => ({ event_id: id, tag_id: tagId })),
-      );
+    if (response.success) {
+      this.setStatus(201);
     }
-    const event = await db("events")
-      .where({ "events.id": id })
-      .leftJoin("users", "events.user_id", "users.id")
-      .select(
-        "events.id",
-        "events.title",
-        "events.description",
-        "events.public",
-        "events.DateTime",
-        "events.created_at",
-        "events.updated_at",
-        "users.username as author",
-      )
-      .first();
-    this.setStatus(201);
-    return {
-      success: true,
-      data: event,
-    };
+    return response;
   }
 
   @Security("bearerAuth")
@@ -184,52 +75,16 @@ export class EventController extends Controller {
     @Body() requestBody: EventUpdateRequest,
   ) {
     const userId = (req as any).user.id;
-    const { tagIds, ...eventData } = requestBody;
-    const event = await db("events").where({ id }).first();
-    if (!event) {
-      this.setStatus(404);
-      return {
-        success: false,
-        message: "Event not found",
-      };
-    }
-    if (event.user_id !== userId) {
-      this.setStatus(403);
-      return {
-        success: false,
-        message: "Forbidden",
-      };
-    }
-    await db("events")
-      .where({ id })
-      .update({ ...eventData, updated_at: db.fn.now() });
-    if (tagIds !== undefined) {
-      await db("event_tags_mapping").where({ event_id: id }).delete();
-      if (tagIds.length > 0) {
-        await db("event_tags_mapping").insert(
-          tagIds.map((tagId) => ({ event_id: id, tag_id: tagId })),
-        );
+    const response = await this.eventService.updateEvent(userId, id, requestBody);
+
+    if (!response.success) {
+      if (response.message === "Event not found") {
+        this.setStatus(404);
+      } else if (response.message === "Forbidden") {
+        this.setStatus(403);
       }
     }
-    const updatedEvent = await db("events")
-      .where({ "events.id": id })
-      .leftJoin("users", "events.user_id", "users.id")
-      .select(
-        "events.id",
-        "events.title",
-        "events.description",
-        "events.public",
-        "events.DateTime",
-        "events.created_at",
-        "events.updated_at",
-        "users.username as author",
-      )
-      .first();
-    return {
-      success: true,
-      message: "Todod Updated successfully",
-      data: updatedEvent,
-    };
+    return response;
   }
 
   @Security("bearerAuth")
@@ -237,34 +92,23 @@ export class EventController extends Controller {
   public async deleteEvent(
     @Request() req: express.Request,
     @Path() id: number,
-  ): Promise<EventResponse | void> {
+  ): Promise<IResponse | void> {
     const userId = (req as any).user.id;
-    const event = await db("events").where({ id }).first();
-    if (!event) {
-      this.setStatus(404);
-      return {
-        success: false,
-        message: "Event not found",
-      };
+    const response = await this.eventService.deleteEvent(userId, id);
+
+    if (!response.success) {
+      if (response.message === "Event not found") {
+        this.setStatus(404);
+      } else if (response.message === "Forbidden") {
+        this.setStatus(403);
+      }
     }
-    if (event.user_id !== userId) {
-      this.setStatus(403);
-      return {
-        success: false,
-        message: "Forbidden",
-      };
-    }
-    await db("events").where({ id }).delete();
-    return {
-      success: true,
-      message: "Event deleted successfully",
-    };
+    return response;
   }
 
   @Get("tags")
   public async getTags() {
-    const tags = await db("tags").select("id", "name");
-    return { success: true, data: tags };
+    return this.eventService.getTags();
   }
 
   @Security("bearerAuth", ["admin"])
@@ -280,13 +124,11 @@ export class EventController extends Controller {
         message: "Forbidden: Only admins can create tags",
       };
     }
-    const existing = await db("tags").where({ name: body.name }).first();
-    if (existing) {
+    const response = await this.eventService.createTag(body.name);
+    if (!response.success && response.message === "Tag already exists") {
       this.setStatus(409);
-      return { success: false, message: "Tag already exists" };
     }
-    const [id] = await db("tags").insert({ name: body.name });
-    return { success: true, data: { id, name: body.name } };
+    return response;
   }
 
   @Security("bearerAuth")
@@ -299,12 +141,10 @@ export class EventController extends Controller {
         message: "Forbidden: Only admins can delete tags",
       };
     }
-    const tag = await db("tags").where({ id }).first();
-    if (!tag) {
+    const response = await this.eventService.deleteTag(id);
+    if (!response.success && response.message === "Tag not found") {
       this.setStatus(404);
-      return { success: false, message: "Tag not found" };
     }
-    await db("tags").where({ id }).delete();
-    return { success: true, message: "Tag deleted successfully" };
+    return response;
   }
 }

@@ -1,10 +1,12 @@
+
 import type {
+  Event,
   EventCreateRequest,
-  EventResponse,
   EventUpdateRequest,
   Pagination,
   Tag,
 } from "../interfaces/events.interface";
+import type { IResponse } from "../interfaces/response.interface";
 import api from "./api";
 
 const getAllEvents = async (
@@ -14,7 +16,7 @@ const getAllEvents = async (
   tags: string,
   isPublic: "all" | "public" | "private",
   sort: "asc" | "desc",
-): Promise<EventResponse<{ events: Event[]; pagination: Pagination }>> => {
+): Promise<IResponse<{ events: Event[]; pagination: Pagination }>> => {
   try {
     const params = new URLSearchParams();
     params.set("page", String(page));
@@ -38,7 +40,7 @@ const getAllEvents = async (
 
 const createEvent = async (
   body: EventCreateRequest,
-): Promise<EventResponse<Event>> => {
+): Promise<IResponse<Event>> => {
   try {
     const res = await api.post("events", body);
     return res.data;
@@ -55,7 +57,7 @@ const createEvent = async (
 const updateEvent = async (
   id: number,
   body: EventUpdateRequest,
-): Promise<EventResponse<Event>> => {
+): Promise<IResponse<Event>> => {
   try {
     console.log("Full body being sent:", JSON.stringify(body, null, 2)); // ✅
 
@@ -72,7 +74,7 @@ const updateEvent = async (
   }
 };
 
-const deleteEvent = async (id: number): Promise<EventResponse<null>> => {
+const deleteEvent = async (id: number): Promise<IResponse<null>> => {
   try {
     const res = await api.delete(`events/${id}`);
     return res.data;
@@ -86,7 +88,7 @@ const deleteEvent = async (id: number): Promise<EventResponse<null>> => {
   }
 };
 
-const getAllTags = async (): Promise<EventResponse<Tag[]>> => {
+const getAllTags = async (): Promise<IResponse<Tag[]>> => {
   try {
     const res = await api.get("events/tags");
     return res.data;
@@ -100,7 +102,7 @@ const getAllTags = async (): Promise<EventResponse<Tag[]>> => {
   }
 };
 
-const createTag = async (name: string): Promise<EventResponse<Tag>> => {
+const createTag = async (name: string): Promise<IResponse<Tag>> => {
   try {
     const res = await api.post("events/tags", { name });
     return res.data;
@@ -114,7 +116,7 @@ const createTag = async (name: string): Promise<EventResponse<Tag>> => {
   }
 };
 
-const deleteTag = async (id: number): Promise<EventResponse<null>> => {
+const deleteTag = async (id: number): Promise<IResponse<null>> => {
   try {
     const res = await api.delete(`events/tags/${id}`);
     return res.data;
