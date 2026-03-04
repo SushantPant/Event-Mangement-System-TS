@@ -35,14 +35,22 @@ export class EventController extends Controller {
     @Query("search") search?: string,
     @Query("tags") tags?: string,
     @Query("isPublic") isPublic?: boolean,
-    @Query("isOngoing") isOngoing?: boolean,
+    @Query("isUpcoming") isUpcoming?: boolean,
     @Query("sort") sort?: "asc" | "desc",
     @Query("rsvpStatus") rsvpStatus?: string,
   ) {
-
-
     const userId = (req as any).user.id;
-    return this.eventService.getEvents(userId, page, limit, search, tags, isPublic, isOngoing, sort, rsvpStatus);
+    return this.eventService.getEvents(
+      userId,
+      page,
+      limit,
+      search,
+      tags,
+      isPublic,
+      isUpcoming,
+      sort,
+      rsvpStatus,
+    );
   }
 
   @Security("bearerAuth")
@@ -68,7 +76,11 @@ export class EventController extends Controller {
     @Body() requestBody: RSVPRequest,
   ) {
     const userId = (req as any).user.id;
-    const response = await this.eventService.rsvpToEvent(userId, id, requestBody.status);
+    const response = await this.eventService.rsvpToEvent(
+      userId,
+      id,
+      requestBody.status,
+    );
 
     if (!response.success) {
       if (response.message === "Event not found") {
@@ -88,7 +100,11 @@ export class EventController extends Controller {
     @Body() requestBody: EventUpdateRequest,
   ) {
     const userId = (req as any).user.id;
-    const response = await this.eventService.updateEvent(userId, id, requestBody);
+    const response = await this.eventService.updateEvent(
+      userId,
+      id,
+      requestBody,
+    );
 
     if (!response.success) {
       if (response.message === "Event not found") {

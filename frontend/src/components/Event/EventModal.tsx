@@ -85,8 +85,8 @@ const EventModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-sm">
-      <div className="relative w-full max-w-lg rounded-2xl overflow-hidden bg-white border border-stone-200 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-start justify-center px-4 py-8 bg-stone-900/40 backdrop-blur-sm overflow-y-auto">
+      <div className="relative w-full max-w-lg rounded-2xl overflow-y-auto bg-white border border-stone-200 shadow-xl">
         <div className="flex items-center justify-between px-6 py-5 border-b border-stone-100">
           <div>
             <h2 className="text-xl font-black text-stone-900">

@@ -1,4 +1,3 @@
-
 import type {
   Event,
   EventCreateRequest,
@@ -16,7 +15,7 @@ const getAllEvents = async (
   search: string,
   tags: string,
   isPublic: "all" | "public" | "private",
-  isOngoing: "all" | "Ongoing" | "Past",
+  isUpcoming: "all" | "Upcoming" | "Past",
   sort: "asc" | "desc",
   rsvpStatus?: string,
 ): Promise<IResponse<{ events: Event[]; pagination: Pagination }>> => {
@@ -30,8 +29,8 @@ const getAllEvents = async (
     if (tags) params.set("tags", tags);
     if (isPublic === "public") params.set("isPublic", "true");
     if (isPublic === "private") params.set("isPublic", "false");
-    if (isOngoing === "Ongoing") params.set("isOngoing", "true");
-    if (isOngoing === "Past") params.set("isOngoing", "false");
+    if (isUpcoming === "Upcoming") params.set("isUpcoming", "true");
+    if (isUpcoming === "Past") params.set("isUpcoming", "false");
     if (rsvpStatus) params.set("rsvpStatus", rsvpStatus);
     const res = await api.get(`events?${params.toString()}`);
     return res.data;
@@ -92,7 +91,10 @@ const deleteEvent = async (id: number): Promise<IResponse<null>> => {
   }
 };
 
-const rsvpToEvent = async (id: number, status: "yes" | "no" | "maybe"): Promise<IResponse<null>> => {
+const rsvpToEvent = async (
+  id: number,
+  status: "yes" | "no" | "maybe",
+): Promise<IResponse<null>> => {
   try {
     const res = await api.post(`events/${id}/rsvp`, { status });
     return res.data;

@@ -42,8 +42,8 @@ const EventsDashboard = () => {
   const [filterPublic, setFilterPublic] = useState<
     "all" | "public" | "private"
   >("all");
-  const [isOngoing, setIsOngoing] = useState<"all" | "Ongoing" | "Past">(
-    "Ongoing",
+  const [isUpcoming, setIsUpcoming] = useState<"all" | "Upcoming" | "Past">(
+    "Upcoming",
   );
   const [rsvpStatus, setRsvpStatus] = useState<"" | "yes" | "no" | "maybe">("");
   const [sort, setSort] = useState<"asc" | "desc">("desc");
@@ -69,7 +69,7 @@ const EventsDashboard = () => {
       debouncedSearch,
       filterTag,
       filterPublic,
-      isOngoing,
+      isUpcoming,
       sort,
       rsvpStatus,
     );
@@ -97,7 +97,7 @@ const EventsDashboard = () => {
     page,
     filterTag,
     filterPublic,
-    isOngoing,
+    isUpcoming,
     rsvpStatus,
   ]);
 
@@ -274,15 +274,15 @@ const EventsDashboard = () => {
             ))}
           </div>
           <div className="flex rounded-lg overflow-hidden border border-stone-200">
-            {(["all", "Ongoing", "Past"] as const).map((v) => (
+            {(["all", "Upcoming", "Past"] as const).map((v) => (
               <button
                 key={v}
                 onClick={() => {
-                  setIsOngoing(v);
+                  setIsUpcoming(v);
                   setPage(1);
                 }}
                 className={`px-3 py-2 text-xs font-semibold capitalize transition border-r border-stone-200 last:border-r-0 ${
-                  isOngoing === v
+                  isUpcoming === v
                     ? "bg-yellow-600 text-white"
                     : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                 }`}
