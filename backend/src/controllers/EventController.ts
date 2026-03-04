@@ -17,6 +17,7 @@ import {
 import {
   EventCreateRequest,
   EventUpdateRequest,
+  RSVPRequest,
 } from "../interfaces/events.interface";
 import { IResponse } from "../interfaces/response.interface";
 import { EventService } from "../services/EventService";
@@ -36,11 +37,12 @@ export class EventController extends Controller {
     @Query("isPublic") isPublic?: boolean,
     @Query("isOngoing") isOngoing?: boolean,
     @Query("sort") sort?: "asc" | "desc",
+    @Query("rsvpStatus") rsvpStatus?: string,
   ) {
 
 
     const userId = (req as any).user.id;
-    return this.eventService.getEvents(userId, page, limit, search, tags, isPublic, isOngoing, sort);
+    return this.eventService.getEvents(userId, page, limit, search, tags, isPublic, isOngoing, sort, rsvpStatus);
   }
 
   @Security("bearerAuth")
@@ -54,6 +56,26 @@ export class EventController extends Controller {
 
     if (response.success) {
       this.setStatus(201);
+    }
+    return response;
+  }
+
+  @Security("bearerAuth")
+  @Post("{id}/rsvp")
+  public async rsvpToEvent(
+    @Request() req: express.Request,
+    @Path() id: number,
+    @Body() requestBody: RSVPRequest,
+  ) {
+    const userId = (req as any).user.id;
+    const response = await this.eventService.rsvpToEvent(userId, id, requestBody.status);
+
+    if (!response.success) {
+      if (response.message === "Event not found") {
+        this.setStatus(404);
+      } else if (response.message === "Forbidden") {
+        this.setStatus(403);
+      }
     }
     return response;
   }

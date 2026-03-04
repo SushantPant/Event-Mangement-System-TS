@@ -8,7 +8,12 @@ import {
   deleteEvent,
 } from "../api/eventsApi";
 import ConfirmModal from "../components/ui/ConfirmModal";
-import type { Event, EventCreateRequest, Pagination, Tag } from "../interfaces/events.interface";
+import type {
+  Event,
+  EventCreateRequest,
+  Pagination,
+  Tag,
+} from "../interfaces/events.interface";
 import EventModal from "../components/Event/EventModal";
 import EventCard from "../components/Event/EventCard";
 import TagModal from "../components/Event/TagModal";
@@ -17,7 +22,6 @@ import { useAuth } from "../hooks/useAuth";
 import PaginationComponent from "../components/ui/PaginationComponent";
 import toast from "react-hot-toast";
 import EventViewModal from "../components/Event/EventViewModal";
-
 
 const EventsDashboard = () => {
   const LIMIT = 10;
@@ -38,14 +42,17 @@ const EventsDashboard = () => {
   const [filterPublic, setFilterPublic] = useState<
     "all" | "public" | "private"
   >("all");
-  const [isOngoing, setIsOngoing] = useState<
-    "all" | "Ongoing" | "Past"
-  >("Ongoing");
+  const [isOngoing, setIsOngoing] = useState<"all" | "Ongoing" | "Past">(
+    "Ongoing",
+  );
+  const [rsvpStatus, setRsvpStatus] = useState<"" | "yes" | "no" | "maybe">("");
   const [sort, setSort] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<"create" | "update" | "view">("create");
+  const [modalMode, setModalMode] = useState<"create" | "update" | "view">(
+    "create",
+  );
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -64,6 +71,7 @@ const EventsDashboard = () => {
       filterPublic,
       isOngoing,
       sort,
+      rsvpStatus,
     );
     if (res.success && res.data) {
       setEvents(res.data.events);
@@ -83,7 +91,15 @@ const EventsDashboard = () => {
 
   useEffect(() => {
     fetchEvents();
-  }, [debouncedSearch, sort, page, filterTag, filterPublic, isOngoing]);
+  }, [
+    debouncedSearch,
+    sort,
+    page,
+    filterTag,
+    filterPublic,
+    isOngoing,
+    rsvpStatus,
+  ]);
 
   const openCreate = () => {
     setSelectedEvent(null);
@@ -194,7 +210,6 @@ const EventsDashboard = () => {
               </button>
             )}
           </div>
-
         </div>
 
         <div className="flex flex-wrap gap-3 mb-4 md:mb-8 p-4 rounded-2xl bg-white border border-stone-200 shadow-sm">
@@ -248,10 +263,11 @@ const EventsDashboard = () => {
                   setFilterPublic(v);
                   setPage(1);
                 }}
-                className={`px-3 py-2 text-xs font-semibold capitalize transition border-r border-stone-200 last:border-r-0 ${filterPublic === v
-                  ? "bg-yellow-600 text-white"
-                  : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-                  }`}
+                className={`px-3 py-2 text-xs font-semibold capitalize transition border-r border-stone-200 last:border-r-0 ${
+                  filterPublic === v
+                    ? "bg-yellow-600 text-white"
+                    : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                }`}
               >
                 {v}
               </button>
@@ -265,15 +281,30 @@ const EventsDashboard = () => {
                   setIsOngoing(v);
                   setPage(1);
                 }}
-                className={`px-3 py-2 text-xs font-semibold capitalize transition border-r border-stone-200 last:border-r-0 ${isOngoing === v
-                  ? "bg-yellow-600 text-white"
-                  : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-                  }`}
+                className={`px-3 py-2 text-xs font-semibold capitalize transition border-r border-stone-200 last:border-r-0 ${
+                  isOngoing === v
+                    ? "bg-yellow-600 text-white"
+                    : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                }`}
               >
                 {v}
               </button>
             ))}
           </div>
+
+          <select
+            value={rsvpStatus}
+            onChange={(e) => {
+              setRsvpStatus(e.target.value as "" | "yes" | "no" | "maybe");
+              setPage(1);
+            }}
+            className="px-3 py-2 rounded-lg text-sm text-stone-700 bg-stone-100 border border-stone-200 focus:outline-none focus:ring-2 focus:ring-yellow-500/40 focus:border-yellow-600 transition"
+          >
+            <option value="">All RSVPs</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+            <option value="maybe">Maybe</option>
+          </select>
 
           <button
             onClick={() => setSort((s) => (s === "desc" ? "asc" : "desc"))}
@@ -401,6 +432,7 @@ const EventsDashboard = () => {
           onClose={() => setModalOpen(false)}
           event={selectedEvent}
           tags={tags}
+          onRsvpUpdate={fetchEvents}
         />
       ) : (
         <EventModal
@@ -412,14 +444,14 @@ const EventsDashboard = () => {
           initialData={
             selectedEvent
               ? {
-                id: selectedEvent.id,
-                title: selectedEvent.title,
-                description: selectedEvent.description ?? "",
-                location: selectedEvent.location ?? "",
-                public: selectedEvent.public,
-                DateTime: selectedEvent.DateTime,
-                tagIds: selectedEvent.tagIds,
-              }
+                  id: selectedEvent.id,
+                  title: selectedEvent.title,
+                  description: selectedEvent.description ?? "",
+                  location: selectedEvent.location ?? "",
+                  public: selectedEvent.public,
+                  DateTime: selectedEvent.DateTime,
+                  tagIds: selectedEvent.tagIds,
+                }
               : undefined
           }
         />

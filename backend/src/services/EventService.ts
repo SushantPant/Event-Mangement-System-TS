@@ -15,6 +15,7 @@ export class EventService {
         isPublic?: boolean,
         isOngoing?: boolean,
         sort?: "asc" | "desc",
+        rsvpStatus?: string,
     ) {
         const safePage = Math.max(1, page);
         const safeLimit = Math.min(50, Math.max(1, limit));
@@ -28,6 +29,11 @@ export class EventService {
                 "event_tags_mapping.event_id",
             )
             .leftJoin("tags", "event_tags_mapping.tag_id", "tags.id")
+            .leftJoin("rsvps as current_user_rsvp", function () {
+                this.on("events.id", "=", "current_user_rsvp.event_id")
+                    .andOn("current_user_rsvp.user_id", "=", db.raw("?", [userId || 0]));
+            })
+            .leftJoin("rsvps as all_rsvps", "events.id", "all_rsvps.event_id")
             .select(
                 "events.id",
                 "events.title",
@@ -39,9 +45,13 @@ export class EventService {
                 "events.updated_at",
                 "events.user_id",
                 "users.username as author",
-                db.raw("GROUP_CONCAT(tags.id) as tagIds"),
+                db.raw("GROUP_CONCAT(DISTINCT tags.id) as tagIds"),
+                "current_user_rsvp.status as currentUserRsvp",
+                db.raw(`SUM(CASE WHEN all_rsvps.status = 'yes' THEN 1 ELSE 0 END) as rsvpYesCount`),
+                db.raw(`SUM(CASE WHEN all_rsvps.status = 'no' THEN 1 ELSE 0 END) as rsvpNoCount`),
+                db.raw(`SUM(CASE WHEN all_rsvps.status = 'maybe' THEN 1 ELSE 0 END) as rsvpMaybeCount`)
             )
-            .groupBy("events.id");
+            .groupBy("events.id", "current_user_rsvp.status");
 
         let countQuery = db("events")
             .leftJoin("users", "events.user_id", "users.id")
@@ -50,7 +60,11 @@ export class EventService {
                 "events.id",
                 "event_tags_mapping.event_id",
             )
-            .leftJoin("tags", "event_tags_mapping.tag_id", "tags.id");
+            .leftJoin("tags", "event_tags_mapping.tag_id", "tags.id")
+            .leftJoin("rsvps as current_user_rsvp", function () {
+                this.on("events.id", "=", "current_user_rsvp.event_id")
+                    .andOn("current_user_rsvp.user_id", "=", db.raw("?", [userId || 0]));
+            });
 
         if (search) {
             query = query.where("events.title", "like", `%${search}%`);
@@ -94,6 +108,11 @@ export class EventService {
             query = query.where("events.DateTime", "<", new Date().toISOString());
             countQuery = countQuery.where("events.DateTime", "<", new Date().toISOString());
         }
+
+        if (rsvpStatus) {
+            query = query.where("current_user_rsvp.status", rsvpStatus);
+            countQuery = countQuery.where("current_user_rsvp.status", rsvpStatus);
+        }
         query = query
             .orderBy("events.created_at", sort)
             .limit(safeLimit)
@@ -111,6 +130,12 @@ export class EventService {
                     ...e,
                     public: Boolean(e.public),
                     tagIds: e.tagIds ? e.tagIds.split(",").map(Number) : [],
+                    currentUserRsvp: e.currentUserRsvp || null,
+                    rsvpCounts: {
+                        yes: Number(e.rsvpYesCount) || 0,
+                        no: Number(e.rsvpNoCount) || 0,
+                        maybe: Number(e.rsvpMaybeCount) || 0,
+                    }
                 })),
                 pagination: {
                     page: safePage,
@@ -279,5 +304,25 @@ export class EventService {
         }
         await db("tags").where({ id }).delete();
         return { success: true, message: "Tag deleted successfully" };
+    }
+
+    public async rsvpToEvent(userId: number, eventId: number, status: string): Promise<IResponse> {
+        const event = await db("events").where({ id: eventId }).first();
+        if (!event) {
+            return { success: false, message: "Event not found" };
+        }
+
+        if (!event.public && event.user_id !== userId) {
+            return { success: false, message: "Forbidden" };
+        }
+
+        const existingRsvp = await db("rsvps").where({ user_id: userId, event_id: eventId }).first();
+        if (existingRsvp) {
+            await db("rsvps").where({ id: existingRsvp.id }).update({ status, updated_at: db.fn.now() });
+        } else {
+            await db("rsvps").insert({ user_id: userId, event_id: eventId, status });
+        }
+
+        return { success: true, message: "RSVP updated successfully" };
     }
 }

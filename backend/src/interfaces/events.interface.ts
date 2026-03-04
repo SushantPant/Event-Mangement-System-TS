@@ -10,8 +10,13 @@ interface Event {
   updated_at: Date;
   author: string;
   tagIds: number[];
+  currentUserRsvp?: "yes" | "no" | "maybe" | null;
+  rsvpCounts?: {
+    yes: number;
+    no: number;
+    maybe: number;
+  };
 }
-
 interface Pagination {
   page: number;
   limit: number;
@@ -44,10 +49,16 @@ interface EventUpdateRequest {
   DateTime?: Date;
   tagIds?: number[];
 }
+
+interface RSVPRequest {
+  status: "yes" | "no" | "maybe";
+}
+
 export {
   Event,
   Pagination,
   PaginatedEvents,
   EventCreateRequest,
   EventUpdateRequest,
+  RSVPRequest,
 };

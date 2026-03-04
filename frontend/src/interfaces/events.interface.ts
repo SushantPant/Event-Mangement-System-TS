@@ -10,8 +10,13 @@ interface Event {
   updated_at: Date;
   author: string;
   tagIds: number[];
-}
-interface EventCreateRequest {
+  currentUserRsvp?: "yes" | "no" | "maybe" | null;
+  rsvpCounts?: {
+    yes: number;
+    no: number;
+    maybe: number;
+  };
+}interface EventCreateRequest {
   title: string;
   description: string;
   location?: string;

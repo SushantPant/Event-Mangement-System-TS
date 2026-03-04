@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import type { EventCreateRequest, Tag } from "../../interfaces/events.interface";
+import type {
+  EventCreateRequest,
+  Tag,
+} from "../../interfaces/events.interface";
 import SubmitButton from "../ui/SubmitButton";
 import CancelButton from "../ui/CancelButton";
 
@@ -184,10 +187,11 @@ const EventModal = ({
                       key={tag.id}
                       type="button"
                       onClick={() => toggleTag(tag.id)}
-                      className={`px-3 py-1 rounded-full text-xs font-semibold transition border ${selected
-                        ? "bg-yellow-600 text-white border-yellow-600"
-                        : "bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200"
-                        }`}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold transition border ${
+                        selected
+                          ? "bg-yellow-600 text-white border-yellow-600"
+                          : "bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200"
+                      }`}
                     >
                       {tag.name}
                     </button>
@@ -201,12 +205,14 @@ const EventModal = ({
             <button
               type="button"
               onClick={() => setForm((p) => ({ ...p, public: !p.public }))}
-              className={`relative w-10 h-5 rounded-full transition-colors duration-200 ${form.public ? "bg-yellow-600" : "bg-stone-300"
-                }`}
+              className={`relative w-10 h-5 rounded-full transition-colors duration-200 ${
+                form.public ? "bg-yellow-600" : "bg-stone-300"
+              }`}
             >
               <span
-                className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${form.public ? "translate-x-5" : "translate-x-0"
-                  }`}
+                className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${
+                  form.public ? "translate-x-5" : "translate-x-0"
+                }`}
               />
             </button>
             <span className="text-sm text-stone-700 font-medium">

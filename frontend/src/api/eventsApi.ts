@@ -18,6 +18,7 @@ const getAllEvents = async (
   isPublic: "all" | "public" | "private",
   isOngoing: "all" | "Ongoing" | "Past",
   sort: "asc" | "desc",
+  rsvpStatus?: string,
 ): Promise<IResponse<{ events: Event[]; pagination: Pagination }>> => {
   try {
     const params = new URLSearchParams();
@@ -31,6 +32,7 @@ const getAllEvents = async (
     if (isPublic === "private") params.set("isPublic", "false");
     if (isOngoing === "Ongoing") params.set("isOngoing", "true");
     if (isOngoing === "Past") params.set("isOngoing", "false");
+    if (rsvpStatus) params.set("rsvpStatus", rsvpStatus);
     const res = await api.get(`events?${params.toString()}`);
     return res.data;
   } catch (error: any) {
@@ -85,6 +87,20 @@ const deleteEvent = async (id: number): Promise<IResponse<null>> => {
       error.response?.data ?? {
         success: false,
         message: "Failed to delete event",
+      }
+    );
+  }
+};
+
+const rsvpToEvent = async (id: number, status: "yes" | "no" | "maybe"): Promise<IResponse<null>> => {
+  try {
+    const res = await api.post(`events/${id}/rsvp`, { status });
+    return res.data;
+  } catch (error: any) {
+    return (
+      error.response?.data ?? {
+        success: false,
+        message: "Failed to submit RSVP",
       }
     );
   }
@@ -155,4 +171,5 @@ export {
   createTag,
   updateTag,
   deleteTag,
+  rsvpToEvent,
 };
