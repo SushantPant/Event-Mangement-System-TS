@@ -31,7 +31,7 @@ const EventViewModal = ({
 
   useEffect(() => {
     setCurrentRsvp(event?.currentUserRsvp || null);
-  }, [event?.currentUserRsvp]);
+  }, [event]);
 
   if (!isOpen || !event) return null;
 
