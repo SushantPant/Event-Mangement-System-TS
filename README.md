@@ -65,9 +65,9 @@ Edit `.env` and fill in the values that match your frontend, backend and docker 
 ```
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_NAME=emsodb
-DB_USER=emsouser
-DB_PASSWORD=emsopassword
+DB_NAME=emsdb
+DB_USER=emsuser
+DB_PASSWORD=emspassword
 PORT=5500
 CLIENT_URL=http://localhost:5173
 JWT_SECRET=your-secret-here
